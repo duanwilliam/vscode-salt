@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { consentForm, consentFormPersonal, survey, thankYou } from "./forms";
 import { languages } from "vscode";
 import * as errorviz from "./errorviz";
-import { log } from "./util";
+import { log } from "./utils/log";
 import { codeFuncMap } from "./visualizations";
 import * as fs from "fs";
 import * as path from "path";
