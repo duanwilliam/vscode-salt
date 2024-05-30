@@ -12,6 +12,8 @@ import { openNewLog, openExistingLog, sendTelemetry, newReporter } from "./telem
 import { consentForm, consentFormPersonal, survey, thankYou } from "./forms";
 import { supportedErrorcodes } from "./interventions";
 import * as errorviz from "./interventions/errorviz";
+import { showInlineSuggestions } from "./interventions/inline-suggestions";
+import { registerCommands } from './interventions/inline-suggestions/commands';
 // import { printAllItems } from "./printRust";
 
 let intervalHandle: number | null = null;
@@ -135,7 +137,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (e === undefined) {
         return;
       }
-      saveDiagnostics(e);
+      updateInterventions(e);
     })
   );
   context.subscriptions.push(
@@ -212,7 +214,7 @@ export function activate(context: vscode.ExtensionContext) {
         clearTimeout(timeoutHandle);
       }
       setTimeout(() => {
-        saveDiagnostics(editor);
+        updateInterventions(editor);
       }, 200);
       if (vscode.workspace.getConfiguration("salt").get("errorLogging")
           && context.globalState.get("participation") === true && stream !== undefined){
@@ -232,6 +234,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  registerCommands(context);
 }
 
 /**
@@ -452,7 +456,7 @@ function hashString(input: string): string {
   return hash.digest('hex').slice(0,8);
 }
 
-function saveDiagnostics(editor: vscode.TextEditor) {
+function updateInterventions(editor: vscode.TextEditor) {
   if (!enableExt){
     return;
   }
@@ -473,6 +477,15 @@ function saveDiagnostics(editor: vscode.TextEditor) {
         supportedErrorcodes.has(d.code.value)
       );
     });
+  
+  saveDiagnostics(editor, diagnostics);
+  showInlineSuggestions(editor, diagnostics);
+}
+
+/**
+ * revis
+ */
+function saveDiagnostics(editor: vscode.TextEditor, diagnostics: vscode.Diagnostic[]) {
   const newdiags: Array<[string, errorviz.DiagnosticInfo]> = [];
   const torefresh: string[] = [];
   for (const diag of diagnostics) {
